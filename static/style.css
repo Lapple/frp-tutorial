@@ -1,0 +1,55 @@
+body {
+    margin: 0;
+    font: 16px/1.35 'Avenir Next', 'Helvetica Neue', sans-serif;
+}
+
+.hotels {
+    display: flex;
+    align-items: stretch;
+    height: 100vh;
+}
+
+.hotels__list {
+    flex-flow: column;
+    width: 300px;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+.hotels__map {
+    flex-grow: 1;
+}
+
+.hotels__loading {
+    margin: auto;
+    padding: 30px 0;
+    text-align: center;
+
+    color: #999;
+}
+
+.hotel {
+    padding: 10px 14px;
+
+    color: #999;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.hotel_active {
+    color: rgba(255, 255, 255, 0.7);
+    background: rgb(226, 109, 75);
+}
+
+.hotel_active .hotel__title {
+    color: #fff;
+}
+
+.hotel__stars {
+    color: #fc0;
+}
+
+.hotel__title {
+    font-weight: 600;
+    color: #111;
+}

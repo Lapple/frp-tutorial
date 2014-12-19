@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>FRP Tutorial</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="/style.css">
+    </head>
+    <body>
+        <div class="hotels">
+            <div class="hotels__list js-list">
+                <div class="hotels__loading">Loading&hellip;</div>
+            </div>
+            <div class="hotels__map js-map">
+                <div class="hotels__loading">Loading&hellip;</div>
+            </div>
+        </div>
+        <script id="hotels-template" type="text/x-handlebars-template">
+            {{#each hotels}}
+                <div class="hotel js-hotel" data-title="{{title}}">
+                    <div class="hotel__title">{{title}}</div>
+                    <div class="hotel__stars">{{#repeat stars}}&#9733;{{/repeat}}</div>
+                    <div class="hotel__address">{{address}}, {{city}}</div>
+                </div>
+            {{/each}}
+        </script>
+        <script type="text/javascript" src="/hotels.compiled.js"></script>
+    </body>
+</html>

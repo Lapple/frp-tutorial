@@ -1,0 +1,24 @@
+{
+  "name": "frp-tutorial",
+  "version": "0.0.0",
+  "description": "FRP Tutorial",
+  "scripts": {
+    "start": "node server.js",
+    "js": "browserify -o static/hotels.compiled.js static/hotels.js",
+    "watch": "watchify -o static/hotels.compiled.js static/hotels.js -v"
+  },
+  "dependencies": {
+    "express": "^4.10.6",
+    "genie": "^0.1.8",
+    "range": "0.0.2"
+  },
+  "devDependencies": {
+    "browserify": "^7.0.3",
+    "google-maps": "^2.1.1",
+    "handlebars": "^2.0.0",
+    "handlebars-helper-repeat": "^0.2.0",
+    "jquery": "^2.1.3",
+    "lodash.debounce": "^2.4.1",
+    "watchify": "^2.2.1"
+  }
+}
