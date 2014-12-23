@@ -117,8 +117,13 @@ $(function() {
             maps.event.clearListeners(map, 'bounds_changed');
         }
 
-        var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
+        function getBounds() {
+            return map.getBounds().toUrlValue();
+        }
 
-        boundsChange.subscribe(console.log.bind(console));
+        var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
+        var bounds = boundsChange.map(getBounds).debounce(200);
+
+        bounds.subscribe(console.log.bind(console));
     });
 });
