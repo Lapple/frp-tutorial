@@ -4,7 +4,6 @@ var $ = require('jquery');
 var Rx = require('rx');
 var gmaps = require('google-maps');
 var Handlebars = require('handlebars');
-var debounce = require('lodash.debounce');
 
 require('handlebars-helper-repeat').register(Handlebars);
 
@@ -28,11 +27,6 @@ $(function() {
             zoom: 8
         });
 
-        // Attach listener to bounds change.
-        maps.event.addListener(map, 'bounds_changed', debounce(function() {
-            requestHotels(renderHotels);
-        }, 200));
-
         // Attach listener to hotels list click.
         $hotelsList.on('click', '.js-hotel', function(e) {
             events.emit('active', e.currentTarget.getAttribute('data-title'));
@@ -43,15 +37,6 @@ $(function() {
             setActiveMarker(title);
             setActiveItem(title);
         });
-
-        // Rerender everything when new hotels data arrives.
-        function renderHotels(hotels) {
-            renderHotelMarkers(hotels);
-        }
-
-        function requestHotels(cb) {
-            $.getJSON('/hotels', { box: map.getBounds().toUrlValue() }, cb);
-        }
 
         function renderHotelMarkers(hotels) {
             clearMarkers();
@@ -130,6 +115,8 @@ $(function() {
         var hotels = bounds.flatMapLatest(getHotelsRequestObservable);
 
         hotels.subscribe(renderHotelsList);
+        hotels.subscribe(renderHotelMarkers);
+
         hotels.subscribe(console.log.bind(console));
     });
 });
