@@ -47,7 +47,6 @@ $(function() {
         // Rerender everything when new hotels data arrives.
         function renderHotels(hotels) {
             renderHotelMarkers(hotels);
-            renderHotelsList(hotels);
         }
 
         function requestHotels(cb) {
@@ -130,6 +129,7 @@ $(function() {
         var bounds = boundsChange.map(getBounds).debounce(200);
         var hotels = bounds.flatMapLatest(getHotelsRequestObservable);
 
+        hotels.subscribe(renderHotelsList);
         hotels.subscribe(console.log.bind(console));
     });
 });
