@@ -1,6 +1,7 @@
 var EventEmitter = require('events').EventEmitter;
 
 var $ = require('jquery');
+var Rx = require('rx');
 var gmaps = require('google-maps');
 var Handlebars = require('handlebars');
 var debounce = require('lodash.debounce');
@@ -106,5 +107,18 @@ $(function() {
                 $el.toggleClass('hotel_active', $el.attr('data-title') === title);
             });
         }
+
+        // RxJS observables
+        function subscribeToBoundsChange(cb) {
+            maps.event.addListener(map, 'bounds_changed', cb);
+        }
+
+        function unsubscribeFromBoundsChange() {
+            maps.event.clearListeners(map, 'bounds_changed');
+        }
+
+        var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
+
+        boundsChange.subscribe(console.log.bind(console));
     });
 });
