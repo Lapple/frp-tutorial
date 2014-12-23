@@ -118,12 +118,18 @@ $(function() {
         }
 
         function getBounds() {
-            return map.getBounds().toUrlValue();
+            return map.getBounds();
+        }
+
+        function getHotelsRequestObservable(bounds) {
+            var deferred = $.getJSON('/hotels', { box: bounds.toUrlValue() });
+            return Rx.Observable.fromPromise(deferred);
         }
 
         var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
         var bounds = boundsChange.map(getBounds).debounce(200);
+        var hotels = bounds.flatMapLatest(getHotelsRequestObservable);
 
-        bounds.subscribe(console.log.bind(console));
+        hotels.subscribe(console.log.bind(console));
     });
 });
