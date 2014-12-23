@@ -112,7 +112,7 @@ $(function() {
 
         var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
         var bounds = boundsChange.map(getBounds).debounce(200);
-        var hotels = bounds.flatMapLatest(getHotelsRequestObservable);
+        var hotels = bounds.flatMapLatest(getHotelsRequestObservable).share();
 
         hotels.subscribe(renderHotelsList);
         hotels.subscribe(renderHotelMarkers);
