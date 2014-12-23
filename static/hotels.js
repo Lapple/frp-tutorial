@@ -27,11 +27,6 @@ $(function() {
             zoom: 8
         });
 
-        // Attach listener to hotels list click.
-        $hotelsList.on('click', '.js-hotel', function(e) {
-            events.emit('active', e.currentTarget.getAttribute('data-title'));
-        });
-
         // Update UI whenever active hotel changes.
         events.on('active', function(title) {
             setActiveMarker(title);
@@ -110,13 +105,27 @@ $(function() {
             return Rx.Observable.fromPromise(deferred);
         }
 
+        function subscribeToListClicks(cb) {
+            $hotelsList.on('click', '.js-hotel', cb);
+        }
+
+        function unsubscribeFromListClicks(cb) {
+            $hotelsList.off('click', '.js-hotel', cb);
+        }
+
+        function getActiveFromListClick(args) {
+            return args[0].currentTarget.getAttribute('data-title');
+        }
+
         var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
         var bounds = boundsChange.map(getBounds).debounce(200);
         var hotels = bounds.flatMapLatest(getHotelsRequestObservable).share();
 
+        var activeFromListClicks = Rx.Observable.fromEventPattern(subscribeToListClicks, unsubscribeFromListClicks, getActiveFromListClick);
+
         hotels.subscribe(renderHotelsList);
         hotels.subscribe(renderHotelMarkers);
 
-        hotels.subscribe(console.log.bind(console));
+        activeFromListClicks.subscribe(events.emit.bind(events, 'active'));
     });
 });
