@@ -46,6 +46,22 @@ $(function() {
             });
         }
 
+        function setActiveMarker(markers) {
+            // Previously active marker.
+            if (markers[0]) {
+                markers[0].setIcon({
+                    path: maps.SymbolPath.CIRCLE,
+                    scale: 5
+                });
+            }
+
+            // Next active marker.
+            markers[1].setIcon({
+                path: maps.SymbolPath.CIRCLE,
+                scale: 10
+            });
+        }
+
         // RxJS observables
         function subscribeToBoundsChange(cb) {
             maps.event.addListener(map, 'bounds_changed', cb);
@@ -109,6 +125,14 @@ $(function() {
             return s;
         }
 
+        function getActiveMarker(markers, active) {
+            for (var i = 0; i < markers.length; i += 1) {
+                if (markers[i].getTitle() === active) {
+                    return markers[i];
+                }
+            }
+        }
+
         function isString(value) {
             return typeof value === 'string';
         }
@@ -123,8 +147,11 @@ $(function() {
         var activeFromMarkerClicks = bufferedMarkers.flatMapLatest(collectMarkerClicks).filter(isString);
         var active = Rx.Observable.merge(activeFromListClicks, activeFromMarkerClicks);
 
+        var activeMarker = Rx.Observable.combineLatest(markers, active, getActiveMarker).startWith(null).bufferWithCount(2, 1);
+
         hotels.subscribe(renderHotelsList);
         bufferedMarkers.subscribe(renderHotelMarkers);
         active.subscribe(setActiveItem);
+        activeMarker.subscribe(setActiveMarker);
     });
 });
