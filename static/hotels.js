@@ -1,5 +1,3 @@
-var EventEmitter = require('events').EventEmitter;
-
 var $ = require('jquery');
 var Rx = require('rx');
 var gmaps = require('google-maps');
@@ -10,7 +8,6 @@ require('handlebars-helper-repeat').register(Handlebars);
 $(function() {
     var $mapContainer = $('.js-map');
     var $hotelsList = $('.js-list');
-    var events = new EventEmitter();
 
     var hotelsTemplate = Handlebars.compile($('#hotels-template').html());
 
@@ -24,11 +21,6 @@ $(function() {
         var map = new maps.Map($mapContainer[0], {
             center: new maps.LatLng(52.366667, 4.9),
             zoom: 8
-        });
-
-        // Update UI whenever active hotel changes.
-        events.on('active', function(title) {
-            setActiveItem(title);
         });
 
         function renderHotelMarkers(markers) {
@@ -45,21 +37,6 @@ $(function() {
 
         function renderHotelsList(hotels) {
             $hotelsList.html(hotelsTemplate({ hotels: hotels }));
-        }
-
-        function createMarkers(hotels) {
-            return hotels.map(createMarker);
-        }
-
-        function createMarker(hotel) {
-            return new maps.Marker({
-                position: new maps.LatLng(hotel.lat, hotel.lng),
-                icon: {
-                    path: maps.SymbolPath.CIRCLE,
-                    scale: 5
-                },
-                title: hotel.title
-            });
         }
 
         function setActiveItem(title) {
@@ -99,16 +76,55 @@ $(function() {
             return args[0].currentTarget.getAttribute('data-title');
         }
 
+        function createMarkers(hotels) {
+            return hotels.map(createMarker);
+        }
+
+        function createMarker(hotel) {
+            return new maps.Marker({
+                position: new maps.LatLng(hotel.lat, hotel.lng),
+                icon: {
+                    path: maps.SymbolPath.CIRCLE,
+                    scale: 5
+                },
+                title: hotel.title
+            });
+        }
+
+        function collectMarkerClicks(markers) {
+            var s = new Rx.BehaviorSubject();
+
+            // Previous set of markers.
+            markers[0].forEach(function(marker) {
+                maps.event.clearListeners(marker, 'click');
+            });
+
+            // New set of markers.
+            markers[1].forEach(function(marker) {
+                maps.event.addListener(marker, 'click', function() {
+                    s.onNext(marker.getTitle());
+                });
+            });
+
+            return s;
+        }
+
+        function isString(value) {
+            return typeof value === 'string';
+        }
+
         var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
         var bounds = boundsChange.map(getBounds).debounce(200);
         var hotels = bounds.flatMapLatest(getHotelsRequestObservable).share();
-        var markers = hotels.map(createMarkers).startWith([]).bufferWithCount(2, 1).share();
+        var markers = hotels.map(createMarkers).share();
+        var bufferedMarkers = markers.startWith([]).bufferWithCount(2, 1);
 
         var activeFromListClicks = Rx.Observable.fromEventPattern(subscribeToListClicks, unsubscribeFromListClicks, getActiveFromListClick);
+        var activeFromMarkerClicks = bufferedMarkers.flatMapLatest(collectMarkerClicks).filter(isString);
+        var active = Rx.Observable.merge(activeFromListClicks, activeFromMarkerClicks);
 
         hotels.subscribe(renderHotelsList);
-        markers.subscribe(renderHotelMarkers);
-
-        activeFromListClicks.subscribe(events.emit.bind(events, 'active'));
+        bufferedMarkers.subscribe(renderHotelMarkers);
+        active.subscribe(setActiveItem);
     });
 });
