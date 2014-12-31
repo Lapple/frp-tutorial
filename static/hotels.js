@@ -56,10 +56,12 @@ $(function() {
             }
 
             // Next active marker.
-            markers[1].setIcon({
-                path: maps.SymbolPath.CIRCLE,
-                scale: 10
-            });
+            if (markers[1]) {
+                markers[1].setIcon({
+                    path: maps.SymbolPath.CIRCLE,
+                    scale: 10
+                });
+            }
         }
 
         // RxJS observables
@@ -131,6 +133,8 @@ $(function() {
                     return markers[i];
                 }
             }
+
+            return null;
         }
 
         function isString(value) {
