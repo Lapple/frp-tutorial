@@ -19,7 +19,6 @@ $(function() {
 
     gmaps.load(function(google) {
         var maps = google.maps;
-        var markers;
 
         // Create map instance.
         var map = new maps.Map($mapContainer[0], {
@@ -29,54 +28,37 @@ $(function() {
 
         // Update UI whenever active hotel changes.
         events.on('active', function(title) {
-            setActiveMarker(title);
             setActiveItem(title);
         });
 
-        function renderHotelMarkers(hotels) {
-            clearMarkers();
-            hotels.forEach(createMarker);
+        function renderHotelMarkers(markers) {
+            // Previous set of markers.
+            markers[0].forEach(function(marker) {
+                marker.setMap(null);
+            });
+
+            // New set of markers.
+            markers[1].forEach(function(marker) {
+                marker.setMap(map);
+            });
         }
 
         function renderHotelsList(hotels) {
             $hotelsList.html(hotelsTemplate({ hotels: hotels }));
         }
 
-        function clearMarkers() {
-            if (Array.isArray(markers)) {
-                markers.forEach(function(marker) {
-                    maps.event.removeListener(marker._onClick);
-                    marker.setMap(null);
-                });
-            }
-
-            markers = [];
+        function createMarkers(hotels) {
+            return hotels.map(createMarker);
         }
 
         function createMarker(hotel) {
-            var marker = new maps.Marker({
+            return new maps.Marker({
                 position: new maps.LatLng(hotel.lat, hotel.lng),
-                map: map,
                 icon: {
                     path: maps.SymbolPath.CIRCLE,
                     scale: 5
                 },
                 title: hotel.title
-            });
-
-            marker._onClick = maps.event.addListener(marker, 'click', function() {
-                events.emit('active', hotel.title);
-            });
-
-            markers.push(marker);
-        }
-
-        function setActiveMarker(title) {
-            markers.forEach(function(marker) {
-                marker.setIcon({
-                    path: maps.SymbolPath.CIRCLE,
-                    scale: marker.getTitle() === title ? 10 : 5
-                });
             });
         }
 
@@ -120,11 +102,12 @@ $(function() {
         var boundsChange = Rx.Observable.fromEventPattern(subscribeToBoundsChange, unsubscribeFromBoundsChange);
         var bounds = boundsChange.map(getBounds).debounce(200);
         var hotels = bounds.flatMapLatest(getHotelsRequestObservable).share();
+        var markers = hotels.map(createMarkers).startWith([]).bufferWithCount(2, 1).share();
 
         var activeFromListClicks = Rx.Observable.fromEventPattern(subscribeToListClicks, unsubscribeFromListClicks, getActiveFromListClick);
 
         hotels.subscribe(renderHotelsList);
-        hotels.subscribe(renderHotelMarkers);
+        markers.subscribe(renderHotelMarkers);
 
         activeFromListClicks.subscribe(events.emit.bind(events, 'active'));
     });
