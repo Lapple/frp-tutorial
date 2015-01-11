@@ -145,13 +145,13 @@ $(function() {
         var bounds = boundsChange.map(getBounds).debounce(200);
         var hotels = bounds.flatMapLatest(getHotelsRequestObservable).share();
         var markers = hotels.map(createMarkers).share();
-        var bufferedMarkers = markers.startWith([]).bufferWithCount(2, 1);
+        var bufferedMarkers = markers.startWith([]).pairwise();
 
         var activeFromListClicks = Rx.Observable.fromEventPattern(subscribeToListClicks, unsubscribeFromListClicks, getActiveFromListClick);
         var activeFromMarkerClicks = bufferedMarkers.flatMapLatest(collectMarkerClicks).filter(isString);
         var active = Rx.Observable.merge(activeFromListClicks, activeFromMarkerClicks);
 
-        var activeMarker = Rx.Observable.combineLatest(markers, active, getActiveMarker).startWith(null).bufferWithCount(2, 1);
+        var activeMarker = Rx.Observable.combineLatest(markers, active, getActiveMarker).startWith(null).pairwise();
 
         hotels.subscribe(renderHotelsList);
         bufferedMarkers.subscribe(renderHotelMarkers);
